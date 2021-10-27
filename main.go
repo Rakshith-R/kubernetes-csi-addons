@@ -30,6 +30,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	csiaddonsv1beta1 "github.com/csi-addons/kubernetes-csi-addons/api/v1beta1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -41,6 +43,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
+	utilruntime.Must(csiaddonsv1beta1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 

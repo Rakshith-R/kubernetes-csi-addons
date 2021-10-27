@@ -1,0 +1,8 @@
+apiVersion: csiaddons.openshift.io/v1beta1
+kind: CSIAddonsJob
+metadata:
+  name: csiaddonsjob-sample-1
+spec:
+  operation:
+    reclaimSpace:
+      pvc: rbd-pvc 
