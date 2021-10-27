@@ -1,0 +1,27 @@
+apiVersion: csiaddons.openshift.io/v1beta1
+kind: CSIAddonsJob
+metadata:
+  name: sample-1
+spec:
+  operation:
+    reclaimSpace:
+      target:
+        pvc: rbd-pvc
+      parameters:
+        key1: val1
+  backOffLimit: 4
+  activeDeadlineSeconds: 500
+---
+apiVersion: csiaddons.openshift.io/v1beta1
+kind: CSIAddonsJob
+metadata:
+  name: sample-2
+spec:
+  operation:
+    reclaimSpace:
+      target:
+        pv: pvc-1231-1232-4534
+      parameters:
+        key1: val1
+  backOffLimit: 4
+  activeDeadlineSeconds: 500
