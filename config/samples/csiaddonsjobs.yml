@@ -1,0 +1,16 @@
+apiVersion: csiaddons.openshift.io/v1beta1
+kind: CSIAddonsJob
+metadata:
+  name: sample-1
+spec:
+  operation:
+    name: "reclaimSpace"
+    dataSource: 
+      name: pvc-1
+      kind: PersistentVolumeClaim
+      apiGroup: ""
+    parameters:      # map[string]string which is passed onto the driver
+      key1: value1
+      key2: value2
+  backOffLimit: 4
+  activeDeadlineSeconds: 500
