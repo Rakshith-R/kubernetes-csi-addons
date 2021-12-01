@@ -1,7 +1,9 @@
 apiVersion: csiaddons.openshift.io/v1alpha1
 kind: ReclaimSpaceJob
 metadata:
-  name: reclaimspacejob-sample
+  name: sample12
 spec:
-  # Add fields here
-  foo: bar
+  backOffLimit: 1
+  target:
+    pvc: rbd-pvc
+  schedule: "* * * *"

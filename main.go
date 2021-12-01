@@ -81,6 +81,7 @@ func main() {
 	if err = (&controllers.ReclaimSpaceJobReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
+		Log:    ctrl.Log.WithName("controllers").WithName("ReclaimSpaceJob"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ReclaimSpaceJob")
 		os.Exit(1)

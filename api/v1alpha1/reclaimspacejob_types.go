@@ -50,10 +50,10 @@ type ReclaimSpaceJobSpec struct {
 	// space operation as failed. If not specified, defaults to 6.
 	// +optional
 	// +kubebuilder:default:=6
-	BackoffLimit int32 `json:"backOffLimit"`
+	BackoffLimit int64 `json:"backOffLimit"`
 
 	// ActiveDeadlineSeconds specifies the duration in seconds relative to the
-	// start time that the operation might be retried; value must be positive integer.
+	// creation time that the operation might be retried; value must be positive integer.
 	// If not specified, defaults to 600 seconds.
 	// +optional
 	// +kubebuilder:default:=600
@@ -74,13 +74,10 @@ type ReclaimSpaceJobStatus struct {
 	// Conditions are the list of conditions and their status.
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
-	// ObervedGeneration is the last generation change the controller has dealt with.
-	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
-
 	// Retries indicates the number of times the operation is retried.
 	Retries        int64        `json:"retries,omitempty"`
-	StartTime      *metav1.Time `json:"lastStartTime,omitempty"`
-	CompletionTime *metav1.Time `json:"lastCompletionTime,omitempty"`
+	StartTime      *metav1.Time `json:"StartTime,omitempty"`
+	CompletionTime *metav1.Time `json:"CompletionTime,omitempty"`
 }
 
 //+kubebuilder:object:root=true
