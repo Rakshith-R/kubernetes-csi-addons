@@ -55,43 +55,40 @@ spec:
             properties:
               activeDeadlineSeconds:
                 default: 600
-                description: ActiveDeadlineSeconds specifies the duration in seconds
-                  relative to the creation time that the operation might be retried;
-                  value must be positive integer. If not specified, defaults to 600
-                  seconds.
+                description: RetryDeadlineSeconds specifies the duration in seconds
+                  relative to the start time that the operation might be retried;
+                  value MUST be positive integer. If not specified, defaults to 600
+                  seconds. Maximum allowed value is 1800.
                 format: int64
+                maximum: 1800
+                minimum: 0
                 type: integer
               backOffLimit:
                 default: 6
                 description: BackOffLimit specifies the number of retries allowed
                   before marking reclaim space operation as failed. If not specified,
-                  defaults to 6.
-                format: int64
+                  defaults to 6. Maximum allowed value is 60 and minimum allowed value
+                  is 0.
+                format: int32
+                maximum: 60
+                minimum: 0
                 type: integer
-              schedule:
-                pattern: /^(\*|([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])|\*\/([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]))
-                  (\*|([0-9]|1[0-9]|2[0-3])|\*\/([0-9]|1[0-9]|2[0-3])) (\*|([1-9]|1[0-9]|2[0-9]|3[0-1])|\*\/([1-9]|1[0-9]|2[0-9]|3[0-1]))
-                  (\*|([1-9]|1[0-2])|\*\/([1-9]|1[0-2])) (\*|([0-6])|\*\/([0-6]))$/
-                type: string
               target:
                 description: Target represents volume target on which the operation
                   will be performed.
                 properties:
-                  pvc:
-                    description: PVC represents PersistentVolumeClaim name.
+                  persistentVolumeClaim:
+                    description: PersistentVolumeClaim specifies the target PersistentVolumeClaim
+                      name.
                     type: string
                 type: object
             required:
-            - schedule
             - target
             type: object
           status:
             description: ReclaimSpaceJobStatus defines the observed state of ReclaimSpaceJob
             properties:
-              CompletionTime:
-                format: date-time
-                type: string
-              StartTime:
+              completionTime:
                 format: date-time
                 type: string
               conditions:
@@ -180,8 +177,11 @@ spec:
               retries:
                 description: Retries indicates the number of times the operation is
                   retried.
-                format: int64
+                format: int32
                 type: integer
+              startTime:
+                format: date-time
+                type: string
             type: object
         type: object
     served: true

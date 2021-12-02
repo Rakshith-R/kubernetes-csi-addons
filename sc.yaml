@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sample
+  namespace: rook-ceph
+spec:
+  concurrencyPolicy: Allow
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - command:
+            - /bin/sh
+            - -c
+            - date; echo Hello from the Kubernetes cluster
+            image: busybox
+            imagePullPolicy: IfNotPresent
+            name: hello
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+          dnsPolicy: ClusterFirst
+          restartPolicy: OnFailure
+          schedulerName: default-scheduler
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+  schedule: '*/1 * * *'
+  successfulJobsHistoryLimit: 3
+  suspend: true

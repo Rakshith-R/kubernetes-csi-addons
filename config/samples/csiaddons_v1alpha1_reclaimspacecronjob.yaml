@@ -1,0 +1,10 @@
+apiVersion: csiaddons.openshift.io/v1alpha1
+kind: ReclaimSpaceCronJob
+metadata:
+  name: reclaimspacecronjob-sample
+spec:
+  schedule: "* * * *"
+  jobSpec:
+    backOffLimit: 1
+    target:
+      pvc: rbd-pvc

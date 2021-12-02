@@ -21,22 +21,22 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// OperationState defines the state of the operation.
-type Result string
+// OperationResult represents the result of reclaim space operation.
+type OperationResult string
 
 const (
-	// ResultSucceeded represents the Succeeded operation state.
-	ResultSucceeded Result = "Succeeded"
+	// OperationResultSucceeded represents the Succeeded operation state.
+	OperationResultSucceeded OperationResult = "Succeeded"
 
-	// ResultFailed represents the Failed operation state.
-	ResultFailed Result = "Failed"
+	// OperationResultFailed represents the Failed operation state.
+	OperationResultFailed OperationResult = "Failed"
 )
 
 // TargetSpec defines the targets on which the operation can be
 // performed.
 type TargetSpec struct {
-	// PVC represents PersistentVolumeClaim name.
-	PVC string `json:"pvc,omitempty"`
+	// PersistentVolumeClaim specifies the target PersistentVolumeClaim name.
+	PersistentVolumeClaim string `json:"persistentVolumeClaim,omitempty"`
 }
 
 // ReclaimSpaceJobSpec defines the desired state of ReclaimSpaceJob
@@ -47,23 +47,29 @@ type ReclaimSpaceJobSpec struct {
 	Target TargetSpec `json:"target"`
 
 	// BackOffLimit specifies the number of retries allowed before marking reclaim
-	// space operation as failed. If not specified, defaults to 6.
+	// space operation as failed. If not specified, defaults to 6. Maximum allowed
+	// value is 60 and minimum allowed value is 0.
 	// +optional
+	// +kubebuilder:validation:Maximum=60
+	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:default:=6
-	BackoffLimit int64 `json:"backOffLimit"`
+	BackoffLimit int32 `json:"backOffLimit"`
 
-	// ActiveDeadlineSeconds specifies the duration in seconds relative to the
-	// creation time that the operation might be retried; value must be positive integer.
-	// If not specified, defaults to 600 seconds.
+	// RetryDeadlineSeconds specifies the duration in seconds relative to the
+	// start time that the operation may be retried; value MUST be positive integer.
+	// If not specified, defaults to 600 seconds. Maximum allowed
+	// value is 1800.
 	// +optional
+	// +kubebuilder:validation:Maximum=1800
+	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:default:=600
-	ActiveDeadlineSeconds int64 `json:"activeDeadlineSeconds"`
+	RetryDeadlineSeconds int64 `json:"activeDeadlineSeconds"`
 }
 
 // ReclaimSpaceJobStatus defines the observed state of ReclaimSpaceJob
 type ReclaimSpaceJobStatus struct {
 	// Result indicates the result of ReclaimSpaceJob.
-	Result Result `json:"result,omitempty"`
+	Result OperationResult `json:"result,omitempty"`
 
 	// Message contains any message from the ReclaimSpaceJob.
 	Message string `json:"message,omitempty"`
@@ -75,9 +81,9 @@ type ReclaimSpaceJobStatus struct {
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
 	// Retries indicates the number of times the operation is retried.
-	Retries        int64        `json:"retries,omitempty"`
-	StartTime      *metav1.Time `json:"StartTime,omitempty"`
-	CompletionTime *metav1.Time `json:"CompletionTime,omitempty"`
+	Retries        int32        `json:"retries,omitempty"`
+	StartTime      *metav1.Time `json:"startTime,omitempty"`
+	CompletionTime *metav1.Time `json:"completionTime,omitempty"`
 }
 
 //+kubebuilder:object:root=true

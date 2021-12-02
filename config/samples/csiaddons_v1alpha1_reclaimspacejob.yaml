@@ -3,7 +3,6 @@ kind: ReclaimSpaceJob
 metadata:
   name: sample12
 spec:
-  backOffLimit: 1
+  backOffLimit: 120000
   target:
-    pvc: rbd-pvc
-  schedule: "* * * *"
+    persistentVolumeClaim: rbd-pvc
