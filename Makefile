@@ -66,6 +66,9 @@ run: manifests generate fmt vet ## Run a controller from your host.
 docker-build: test ## Build docker image with the manager.
 	docker build -t ${IMG} .
 
+docker-build-sidecar:
+	docker build -t ${IMG} -f ./build/sidecar/Dockerfile .
+
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}
 
