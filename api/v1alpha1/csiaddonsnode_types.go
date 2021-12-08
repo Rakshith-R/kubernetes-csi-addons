@@ -20,28 +20,67 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+// CSIAddonsNodeState defines the state of the operation.
+type CSIAddonsNodeState string
+
+const (
+	// Connected represents the Connected state.
+	CSIAddonsNodeStateConnected CSIAddonsNodeState = "Connected"
+
+	// Failed represents the Connection Failed state.
+	CSIAddonsNodeStateFailed CSIAddonsNodeState = "Failed"
+)
+
+type CSIAddonsNodeDriver struct {
+	// Name is the name of the CSI driver that this object refers to.
+	// This must be the same name returned by the CSI-Addons GetIdentity()
+	// call for that driver. The name of the driver is in the format:
+	// `example.csi.ceph.com`
+	Name string `json:"name"`
+
+	// EndPoint is url that contains the ip-address to which the CSI-Addons
+	// side-car listens to.
+	EndPoint string `json:"endpoint"`
+
+	// NodeID is the ID of the node to identify on which node the side-car
+	// is running.
+	NodeID string `json:"nodeID"`
+}
 
 // CSIAddonsNodeSpec defines the desired state of CSIAddonsNode
 type CSIAddonsNodeSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of CSIAddonsNode. Edit csiaddonsnode_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Driver is the information of the CSI Driver existing on a node.
+	// If the driver is uninstalled, this can become empty.
+	Driver CSIAddonsNodeDriver `json:"driver"`
 }
 
 // CSIAddonsNodeStatus defines the observed state of CSIAddonsNode
 type CSIAddonsNodeStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// State represents the state of the CSIAddonsNode object.
+	// It informs whether or not the CSIAddonsNode is Connected
+	// to the CSI Driver.
+	State CSIAddonsNodeState `json:"state,omitempty"`
+
+	// Messgae is a human-readable message indicating details about why the CSIAddonsNode
+	// is in this state.
+	// +optional
+	Message string `json:"message,omitempty"`
+
+	// Reason is a brief CamelCase string that describes any failure and is meant
+	// for machine parsing and tidy display in the CLI.
+	// +optional
+	Reason string `json:"reason,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:JSONPath=".metadata.namespace",name=namespace,type=string
+//+kubebuilder:printcolumn:JSONPath=".metadata.creationTimestamp",name=Age,type=date
+//+kubebuilder:printcolumn:JSONPath=".spec.driver.name",name=DriverName,type=string
+//+kubebuilder:printcolumn:JSONPath=".spec.driver.endpoint",name=Endpoint,type=string
+//+kubebuilder:printcolumn:JSONPath=".spec.driver.nodeID",name=NodeID,type=string
 
-// CSIAddonsNode is the Schema for the csiaddonsnodes API
+// CSIAddonsNode is the Schema for the csiaddonsnode API
 type CSIAddonsNode struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -50,7 +89,7 @@ type CSIAddonsNode struct {
 	Status CSIAddonsNodeStatus `json:"status,omitempty"`
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 
 // CSIAddonsNodeList contains a list of CSIAddonsNode
 type CSIAddonsNodeList struct {
