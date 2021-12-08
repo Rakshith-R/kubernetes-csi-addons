@@ -80,6 +80,14 @@ func (r *ReclaimSpaceJobReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		logger)
 
 	instance.Status.Retries++
+	instance.OwnerReferences = []v1.OwnerReference{v1.OwnerReference{
+		APIVersion:         "",
+		Kind:               "",
+		Name:               "",
+		UID:                "",
+		Controller:         new(bool),
+		BlockOwnerDeletion: new(bool),
+	}}
 
 	if uErr := r.Client.Status().Update(ctx, instance); uErr != nil {
 		logger.Error(err, "failed to update status")
@@ -109,15 +117,15 @@ func (r *ReclaimSpaceJobReconciler) reconcile(
 
 	if status.Retries > spec.BackoffLimit {
 		logger.Info("maximum retry limit reached")
-		status.Result = csiaddonsv1alpha1.ResultFailed
+		status.Result = csiaddonsv1alpha1.OperationResultFailed
 		status.Message = "retryLimitReached"
 		//setFailedCondition
 		//setStatus(status,Result,Message,ReclaimSpace)
 		return nil
 	}
 
-	if time.Now().After(status.StartTime.Time.Add(time.Second * time.Duration(spec.ActiveDeadlineSeconds))) {
-		status.Result = csiaddonsv1alpha1.ResultFailed
+	if time.Now().After(status.StartTime.Time.Add(time.Second * time.Duration(spec.RetryDeadlineSeconds))) {
+		status.Result = csiaddonsv1alpha1.OperationResultFailed
 		status.Message = "timeLimitReached"
 		return nil
 	}
@@ -126,19 +134,21 @@ func (r *ReclaimSpaceJobReconciler) reconcile(
 
 	sc, pvc, pv, err := getTargetVolume(ctx, r.Client, r.Log, spec.Target, namespace)
 	if err != nil {
-		logger.Error(err, "failed to get PVC", "PVCName", spec.Target.PVC)
+		logger.Error(err, "failed to get PVC", "PVCName", spec.Target.PersistentVolumeClaim)
 		return err
 	}
 
 	logger.Info("pvc", pvc.Name, pvc.Namespace)
 	logger.Info("pv", pv.Name, pv.Kind)
 	logger.Info("sc", sc.Name, sc.Kind)
+
+	// send csi driver rpc
 	return nil
 }
 
 func getTargetVolume(ctx context.Context, client client.Client, logger logr.Logger, target csiaddonsv1alpha1.TargetSpec, namespace string) (*scv1.StorageClass, *corev1.PersistentVolumeClaim, *corev1.PersistentVolume, error) {
 
-	req := types.NamespacedName{Name: target.PVC, Namespace: namespace}
+	req := types.NamespacedName{Name: target.PersistentVolumeClaim, Namespace: namespace}
 	pvc := &corev1.PersistentVolumeClaim{}
 	err := client.Get(ctx, req, pvc)
 	if err != nil {

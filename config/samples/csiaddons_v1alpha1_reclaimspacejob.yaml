@@ -2,7 +2,13 @@ apiVersion: csiaddons.openshift.io/v1alpha1
 kind: ReclaimSpaceJob
 metadata:
   name: sample12
+  ownerReferences:
+  - apiVersion: v1
+    kind: Pod
+    name: csi-rbdplugin-n5xjr
+    uid: 50c5193c-f59f-4ab3-a5df-c8b09abb4585
+    # controller: true
 spec:
-  backOffLimit: 120000
+  backOffLimit: 12
   target:
     persistentVolumeClaim: rbd-pvc

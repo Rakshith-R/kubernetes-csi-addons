@@ -1,0 +1,59 @@
+
+
+
+export im=ghcr.io/rakshith-r/sidecar:alpha
+
+
+docker build -t $im . &&  minikube ssh "docker tag $im h" &&  minikube image load $im && k delete po -l $crp
+
+
+      - args:
+        - --nodeid=$(NODE_ID)
+        - --controller-endpoint=$(PORT)
+        - --metrics-bind-address=0
+        - --leader-election-namespace=rook-ceph
+        - --driver-name=rook-ceph.rbd.csi.ceph.com
+        - --csi-address=$(ADDRESS)
+        - --health-probe-bind-address=:9998
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        - name: PORT
+          value: 6201
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: POD_UID
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.uid
+        - name: NODE_ID
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: ADDRESS
+          value: unix:///csi/csi-provisioner.sock
+        image: ghcr.io/rakshith-r/sidecar:alpha
+        imagePullPolicy: IfNotPresent
+        name: csi-addons-sidecar
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /csi
+          name: socket-dir
+
+
+
+  ownerReferences:
+  - apiVersion: v1
+    kind: Pod
+    name: csi-rbdplugin-n5xjr
+    uid: 50c5193c-f59f-4ab3-a5df-c8b09abb4585

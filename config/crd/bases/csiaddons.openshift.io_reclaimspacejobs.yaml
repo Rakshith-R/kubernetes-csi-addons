@@ -56,9 +56,9 @@ spec:
               activeDeadlineSeconds:
                 default: 600
                 description: RetryDeadlineSeconds specifies the duration in seconds
-                  relative to the start time that the operation might be retried;
-                  value MUST be positive integer. If not specified, defaults to 600
-                  seconds. Maximum allowed value is 1800.
+                  relative to the start time that the operation may be retried; value
+                  MUST be positive integer. If not specified, defaults to 600 seconds.
+                  Maximum allowed value is 1800.
                 format: int64
                 maximum: 1800
                 minimum: 0
