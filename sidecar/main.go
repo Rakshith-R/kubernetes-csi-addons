@@ -1,5 +1,5 @@
 /*
-Copyright 2021.
+Copyright 2021 The Kubernetes-CSI-Addons Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,8 +21,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/csi-addons/kubernetes-csi-addons/sidecar/client"
-	"github.com/csi-addons/kubernetes-csi-addons/sidecar/csiaddonsnode"
+	"github.com/csi-addons/kubernetes-csi-addons/sidecar/internal/client"
+	"github.com/csi-addons/kubernetes-csi-addons/sidecar/internal/csiaddonsnode"
+	"github.com/csi-addons/kubernetes-csi-addons/sidecar/internal/server"
+	"github.com/csi-addons/kubernetes-csi-addons/sidecar/internal/services"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
@@ -69,6 +71,12 @@ func main() {
 	if err != nil {
 		klog.Fatalf("Failed to create client: %v", err)
 	}
-	fmt.Println(clientset)
-	time.Sleep(900 * time.Minute)
+
+	sidecarServer := server.NewSidecarServer(*controllerEndpoint)
+
+	sidecarServer.RegisterService(services.NewIdentityServer(client.Client))
+	sidecarServer.RegisterService(services.NewReclaimSpaceControllerServer(client.Client, clientset))
+	sidecarServer.RegisterService(services.NewReclaimSpaceNodeServer(client.Client, clientset))
+
+	sidecarServer.Start()
 }

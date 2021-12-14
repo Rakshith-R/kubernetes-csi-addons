@@ -33,6 +33,7 @@ import (
 
 	csiaddonsv1alpha1 "github.com/csi-addons/kubernetes-csi-addons/api/v1alpha1"
 	"github.com/csi-addons/kubernetes-csi-addons/controllers"
+	"github.com/csi-addons/kubernetes-csi-addons/internal/connection"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -79,8 +80,10 @@ func main() {
 	}
 
 	if err = (&controllers.CSIAddonsNodeReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:    mgr.GetClient(),
+		Log:       ctrl.Log.WithName("controllers").WithName("CSIAddonsNode"),
+		Scheme:    mgr.GetScheme(),
+		Conn_pool: connection.NewConnectionPool(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "CSIAddonsNode")
 		os.Exit(1)

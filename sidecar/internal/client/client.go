@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/csi-addons/spec/lib/go/identity"
-	"github.com/csi-addons/spec/lib/go/reclaimspace"
 	"github.com/kubernetes-csi/csi-lib-utils/connection"
 	"github.com/kubernetes-csi/csi-lib-utils/metrics"
 	"google.golang.org/grpc"
@@ -35,8 +34,6 @@ const (
 
 // Client holds the GRPC connenction details
 type Client struct {
-	identity.IdentityClient
-	reclaimspace.ReclaimSpaceControllerClient
 	Client  *grpc.ClientConn
 	Timeout time.Duration
 }
@@ -58,36 +55,12 @@ func New(address string, timeout time.Duration) (*Client, error) {
 	return c, nil
 }
 
-// Probe the GRPC client once
-func (c *Client) Probe() error {
-	return probeForever(c.Client, c.Timeout)
-}
-
-// GetDriverName gets the driver name from the driver
-func (c *Client) GetDriverName() (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
-	defer cancel()
-
-	req := identity.GetIdentityRequest{}
-	rsp, err := c.GetIdentity(ctx, &req)
-	if err != nil {
-		return "", err
-	}
-
-	name := rsp.GetName()
-	if name == "" {
-		return "", fmt.Errorf("driver name is empty")
-	}
-
-	return name, nil
-}
-
-// PpobeForever calls Probe() of a CSI driver and waits until the driver becomes ready.
+// Ppobe calls Probe() of a CSI driver and waits until the driver becomes ready.
 // Any error other than timeout is returned.
-func probeForever(conn *grpc.ClientConn, singleProbeTimeout time.Duration) error {
+func (c *Client) Probe() error {
 	for {
 		klog.Info("Probing CSI driver for readiness")
-		ready, err := probeOnce(conn, singleProbeTimeout)
+		ready, err := c.probeOnce()
 		if err != nil {
 			st, ok := status.FromError(err)
 			if !ok {
@@ -111,19 +84,15 @@ func probeForever(conn *grpc.ClientConn, singleProbeTimeout time.Duration) error
 	}
 }
 
-// probeOnce is a helper to simplify defer cancel()
-func probeOnce(conn *grpc.ClientConn, timeout time.Duration) (bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+// probeOnce calls driver Probe() just once and returns its result without any processing.
+func (c *Client) probeOnce() (ready bool, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
 	defer cancel()
-	return probe(ctx, conn)
-}
 
-// Probe calls driver Probe() just once and returns its result without any processing.
-func probe(ctx context.Context, conn *grpc.ClientConn) (ready bool, err error) {
-	client := identity.NewIdentityClient(conn)
-
+	identityClient := identity.NewIdentityClient(c.Client)
 	req := identity.ProbeRequest{}
-	rsp, err := client.Probe(ctx, &req)
+
+	rsp, err := identityClient.Probe(ctx, &req)
 
 	if err != nil {
 		return false, err
@@ -135,4 +104,25 @@ func probe(ctx context.Context, conn *grpc.ClientConn) (ready bool, err error) {
 		return true, nil
 	}
 	return r.GetValue(), nil
+}
+
+// GetDriverName gets the driver name from the driver
+func (c *Client) GetDriverName() (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
+	defer cancel()
+
+	identityClient := identity.NewIdentityClient(c.Client)
+
+	req := identity.GetIdentityRequest{}
+	rsp, err := identityClient.GetIdentity(ctx, &req)
+	if err != nil {
+		return "", err
+	}
+
+	name := rsp.GetName()
+	if name == "" {
+		return "", fmt.Errorf("driver name is empty")
+	}
+
+	return name, nil
 }
