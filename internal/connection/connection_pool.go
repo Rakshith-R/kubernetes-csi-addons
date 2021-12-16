@@ -17,7 +17,12 @@ func NewConnectionPool() *ConnectionPool {
 func (cp *ConnectionPool) Put(key string, conn *Connection) {
 	cp.rwlock.Lock()
 	defer cp.rwlock.Unlock()
-	cp.pool[conn.PodUID] = conn
+
+	oldConn, ok := cp.pool[key]
+	if ok {
+		oldConn.Close()
+	}
+	cp.pool[key] = conn
 }
 
 func (cp *ConnectionPool) Delete(key string) {

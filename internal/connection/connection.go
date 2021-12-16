@@ -18,35 +18,35 @@ package connection
 
 import (
 	"context"
+	"time"
 
 	"github.com/csi-addons/spec/lib/go/identity"
 	"google.golang.org/grpc"
 )
 
+const defaultTimeout = time.Minute
+
 type Connection struct {
 	Client       *grpc.ClientConn
 	Capabilities []*identity.Capability
 	NodeID       string
-	PodUID       string
 	DriverName   string
 }
 
-func NewConnection(endpoint string, nodeID, driverName string) (*Connection, error) {
+func NewConnection(ctx context.Context, endpoint string, nodeID, driverName string) (*Connection, error) {
 	opts := grpc.WithInsecure()
 	cc, err := grpc.Dial(endpoint, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	identityClient := identity.NewIdentityClient(cc)
-	res, err := identityClient.GetCapabilities(context.TODO(), &identity.GetCapabilitiesRequest{})
+	caps, err := getCapabilities(ctx, cc)
 	if err != nil {
 		return nil, err
 	}
-
 	return &Connection{
 		Client:       cc,
-		Capabilities: res.GetCapabilities(),
+		Capabilities: caps,
 		NodeID:       nodeID,
 		DriverName:   driverName,
 	}, nil
@@ -54,4 +54,16 @@ func NewConnection(endpoint string, nodeID, driverName string) (*Connection, err
 
 func (c *Connection) Close() {
 	c.Client.Close()
+}
+
+func getCapabilities(ctx context.Context, cc *grpc.ClientConn) ([]*identity.Capability, error) {
+	newCtx, cancel := context.WithTimeout(ctx, defaultTimeout)
+	defer cancel()
+
+	identityClient := identity.NewIdentityClient(cc)
+	res, err := identityClient.GetCapabilities(newCtx, &identity.GetCapabilitiesRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return res.GetCapabilities(), nil
 }

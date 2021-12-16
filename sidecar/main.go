@@ -73,7 +73,6 @@ func main() {
 	}
 
 	sidecarServer := server.NewSidecarServer(*controllerEndpoint)
-
 	sidecarServer.RegisterService(services.NewIdentityServer(client.Client))
 	sidecarServer.RegisterService(services.NewReclaimSpaceControllerServer(client.Client, clientset))
 	sidecarServer.RegisterService(services.NewReclaimSpaceNodeServer(client.Client, clientset))

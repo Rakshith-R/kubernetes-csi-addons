@@ -97,7 +97,7 @@ func (r *CSIAddonsNodeReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	logger.Info("connecting")
-	newCon, err := conn.NewConnection(instance.Spec.Driver.EndPoint, instance.Spec.Driver.NodeID, instance.Spec.Driver.Name)
+	newCon, err := conn.NewConnection(ctx, instance.Spec.Driver.EndPoint, instance.Spec.Driver.NodeID, instance.Spec.Driver.Name)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
