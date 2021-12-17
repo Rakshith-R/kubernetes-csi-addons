@@ -18,7 +18,9 @@ package services
 import (
 	"context"
 
-	"github.com/csi-addons/spec/lib/go/reclaimspace"
+	"github.com/container-storage-interface/spec/lib/go/csi"
+	"github.com/csi-addons/kubernetes-csi-addons/internal/service/reclaimspace"
+	csiReclaimSpace "github.com/csi-addons/spec/lib/go/reclaimspace"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
@@ -26,57 +28,69 @@ import (
 
 // IdentityServer struct of sidecar with supported methods of CSI
 // identity server spec.
-type ReclaimSpaceControllerServer struct {
-	reclaimspace.UnimplementedReclaimSpaceControllerServer
-	client     reclaimspace.ReclaimSpaceControllerClient
-	kubeClient *kubernetes.Clientset
+type ReclaimSpaceServer struct {
+	reclaimspace.UnimplementedReclaimSpaceServer
+	controllerClient csiReclaimSpace.ReclaimSpaceControllerClient
+	nodeClient       csiReclaimSpace.ReclaimSpaceNodeClient
+	kubeClient       *kubernetes.Clientset
 }
 
 // NewIdentityServer creates a new IdentityServer which handles the Identity
 // Service requests from the CSI-Addons specification.
-func NewReclaimSpaceControllerServer(c *grpc.ClientConn, kc *kubernetes.Clientset) *ReclaimSpaceControllerServer {
-	return &ReclaimSpaceControllerServer{
-		client:     reclaimspace.NewReclaimSpaceControllerClient(c),
-		kubeClient: kc,
+func NewReclaimSpaceControllerServer(c *grpc.ClientConn, kc *kubernetes.Clientset) *ReclaimSpaceServer {
+	return &ReclaimSpaceServer{
+		controllerClient: csiReclaimSpace.NewReclaimSpaceControllerClient(c),
+		nodeClient:       csiReclaimSpace.NewReclaimSpaceNodeClient(c),
+		kubeClient:       kc,
 	}
 }
 
-func (rs *ReclaimSpaceControllerServer) RegisterService(server grpc.ServiceRegistrar) {
-	reclaimspace.RegisterReclaimSpaceControllerServer(server, rs)
+func (rs *ReclaimSpaceServer) RegisterService(server grpc.ServiceRegistrar) {
+	reclaimspace.RegisterReclaimSpaceServer(server, rs)
 }
 
-// GetIdentity returns available capabilities of the rbd driver.
-func (rs *ReclaimSpaceControllerServer) ControllerReclaimSpace(
+func (rs *ReclaimSpaceServer) ControllerReclaimSpace(
 	ctx context.Context,
-	req *reclaimspace.ControllerReclaimSpaceRequest) (*reclaimspace.ControllerReclaimSpaceResponse, error) {
+	req *reclaimspace.ControllerReclaimSpaceRequest) (*reclaimspace.ReclaimSpaceResponse, error) {
 
-	res, err := rs.client.ControllerReclaimSpace(ctx, req)
-	klog.Info(err)
-	return res, nil
-}
+	pvName := req.GetPvName()
+	klog.Info(pvName)
 
-type ReclaimSpaceNodeServer struct {
-	reclaimspace.UnimplementedReclaimSpaceNodeServer
-	client     reclaimspace.ReclaimSpaceNodeClient
-	kubeClient *kubernetes.Clientset
-}
+	//get Following params from the pvName
 
-func NewReclaimSpaceNodeServer(c *grpc.ClientConn, kc *kubernetes.Clientset) *ReclaimSpaceNodeServer {
-	return &ReclaimSpaceNodeServer{
-		client:     reclaimspace.NewReclaimSpaceNodeClient(c),
-		kubeClient: kc,
+	csiReq := &csiReclaimSpace.ControllerReclaimSpaceRequest{
+		VolumeId:   "",
+		Parameters: map[string]string{},
+		Secrets:    map[string]string{},
 	}
-}
-
-func (rs *ReclaimSpaceNodeServer) RegisterService(server grpc.ServiceRegistrar) {
-	reclaimspace.RegisterReclaimSpaceNodeServer(server, rs)
-}
-
-func (rs *ReclaimSpaceNodeServer) NodeReclaimSpace(
-	ctx context.Context,
-	req *reclaimspace.NodeReclaimSpaceRequest) (*reclaimspace.NodeReclaimSpaceResponse, error) {
-
-	res, err := rs.client.NodeReclaimSpace(ctx, req)
+	res, err := rs.controllerClient.ControllerReclaimSpace(ctx, csiReq)
 	klog.Info(err)
-	return res, nil
+	return &reclaimspace.ReclaimSpaceResponse{
+		PreUsage:  &reclaimspace.StorageConsumption{UsageBytes: res.PreUsage.UsageBytes},
+		PostUsage: &reclaimspace.StorageConsumption{UsageBytes: res.PostUsage.UsageBytes},
+	}, nil
+}
+
+func (rs *ReclaimSpaceServer) NodeReclaimSpace(
+	ctx context.Context,
+	req *reclaimspace.NodeReclaimSpaceRequest) (*reclaimspace.ReclaimSpaceResponse, error) {
+
+	pvName := req.GetPvName()
+	klog.Info(pvName)
+
+	//get Following params from the pvName
+
+	csiReq := &csiReclaimSpace.NodeReclaimSpaceRequest{
+		VolumeId:          "",
+		VolumePath:        "",
+		StagingTargetPath: "",
+		VolumeCapability:  &csi.VolumeCapability{},
+		Secrets:           map[string]string{},
+	}
+	res, err := rs.nodeClient.NodeReclaimSpace(ctx, csiReq)
+	klog.Info(err)
+	return &reclaimspace.ReclaimSpaceResponse{
+		PreUsage:  &reclaimspace.StorageConsumption{UsageBytes: res.PreUsage.UsageBytes},
+		PostUsage: &reclaimspace.StorageConsumption{UsageBytes: res.PostUsage.UsageBytes},
+	}, nil
 }
