@@ -1,8 +1,8 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
 SIDECAR_IMG ?= quay.io/csiaddons/k8s-sidecar
-TAG?= latest
+CONTROLLER_IMG ?=quay.io/csiaddons/k8s-controller
+TAG ?= latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.23
 
@@ -76,12 +76,12 @@ run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
 
 .PHONY: docker-build
-docker-build: test ## Build docker image with the manager.
-	docker build -t ${IMG} .
+docker-build:  ## Build docker image with the manager.
+	docker build -t "${CONTROLLER_IMG}:${TAG}" .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
+	docker push "${CONTROLLER_IMG}:${TAG}"
 
 .PHONY: docker-build-sidecar
 docker-build-sidecar:
@@ -107,7 +107,7 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd config/manager && $(KUSTOMIZE) edit set image controller="${CONTROLLER_IMG}:${TAG}"
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 .PHONY: undeploy

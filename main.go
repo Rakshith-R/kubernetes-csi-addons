@@ -20,6 +20,9 @@ import (
 	"flag"
 	"os"
 
+	csiaddonsv1alpha1 "github.com/csi-addons/kubernetes-csi-addons/api/v1alpha1"
+	conn "github.com/csi-addons/kubernetes-csi-addons/internal/connection"
+
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -31,7 +34,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	csiaddonsv1alpha1 "github.com/csi-addons/kubernetes-csi-addons/api/v1alpha1"
 	"github.com/csi-addons/kubernetes-csi-addons/controllers"
 	//+kubebuilder:scaffold:imports
 )
@@ -78,9 +80,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	connPool := conn.NewConnectionPool()
+
 	if err = (&controllers.CSIAddonsNodeReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		ConnPool: connPool,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "CSIAddonsNode")
 		os.Exit(1)
