@@ -58,3 +58,21 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - volumeattachments
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolume
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaim
+  verbs:
+  - get

@@ -3,4 +3,5 @@ kind: ReclaimSpaceJob
 metadata:
   name: reclaimspacejob-sample
 spec:
-  # TODO(user): Add fields here
+  target:
+    persistentVolumeClaim: rbd-pvc 
