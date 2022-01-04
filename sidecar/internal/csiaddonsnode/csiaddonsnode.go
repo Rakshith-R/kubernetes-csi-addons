@@ -29,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	"k8s.io/klog/v2"
 )
 
 const (
@@ -104,7 +105,7 @@ func getCSIAddonsNode(driverName, endpoint, nodeID string) (*csiaddonsv1alpha1.C
 	if err != nil {
 		return nil, err
 	}
-
+	klog.Info(podIP)
 	return &csiaddonsv1alpha1.CSIAddonsNode{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      podUID,
@@ -121,7 +122,7 @@ func getCSIAddonsNode(driverName, endpoint, nodeID string) (*csiaddonsv1alpha1.C
 		Spec: csiaddonsv1alpha1.CSIAddonsNodeSpec{
 			Driver: csiaddonsv1alpha1.CSIAddonsNodeDriver{
 				Name:     driverName,
-				EndPoint: podIP + ":" + endpoint,
+				EndPoint: endpoint,
 				NodeID:   nodeID,
 			},
 		},

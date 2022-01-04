@@ -102,11 +102,15 @@ func (rs *ReclaimSpaceServer) ControllerReclaimSpace(
 	if err != nil {
 		return nil, err
 	}
+	r := &proto.ReclaimSpaceResponse{}
+	if res.PreUsage != nil {
+		r.PreUsage = &proto.StorageConsumption{UsageBytes: res.PreUsage.UsageBytes}
+	}
+	if res.PostUsage != nil {
+		r.PostUsage = &proto.StorageConsumption{UsageBytes: res.PostUsage.UsageBytes}
+	}
 
-	return &proto.ReclaimSpaceResponse{
-		PreUsage:  &proto.StorageConsumption{UsageBytes: res.PreUsage.UsageBytes},
-		PostUsage: &proto.StorageConsumption{UsageBytes: res.PostUsage.UsageBytes},
-	}, nil
+	return r, nil
 }
 
 // NodeReclaimSpace fetches required information from kubernetes cluster and calls
@@ -155,9 +159,13 @@ func (rs *ReclaimSpaceServer) NodeReclaimSpace(
 	if err != nil {
 		return nil, err
 	}
+	r := &proto.ReclaimSpaceResponse{}
+	if res.PreUsage != nil {
+		r.PreUsage = &proto.StorageConsumption{UsageBytes: res.PreUsage.UsageBytes}
+	}
+	if res.PostUsage != nil {
+		r.PostUsage = &proto.StorageConsumption{UsageBytes: res.PostUsage.UsageBytes}
+	}
 
-	return &proto.ReclaimSpaceResponse{
-		PreUsage:  &proto.StorageConsumption{UsageBytes: res.PreUsage.UsageBytes},
-		PostUsage: &proto.StorageConsumption{UsageBytes: res.PostUsage.UsageBytes},
-	}, nil
+	return r, nil
 }

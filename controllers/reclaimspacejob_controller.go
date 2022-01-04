@@ -50,10 +50,9 @@ type ReclaimSpaceJobReconciler struct {
 //+kubebuilder:rbac:groups=csiaddons.openshift.io,resources=reclaimspacejobs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=csiaddons.openshift.io,resources=reclaimspacejobs/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=csiaddons.openshift.io,resources=reclaimspacejobs/finalizers,verbs=update
-//+kubebuilder:rbac:groups=v1,resources=persistentvolumeclaim,verbs=get
-//+kubebuilder:rbac:groups=v1,resources=persistentvolume,verbs=get
-//+kubebuilder:rbac:groups=storage.k8s.io/v1,resources=volumeattachments,verbs=get
-
+//+kubebuilder:rbac:groups=,resources=persistentvolumeclaims,verbs=get,list,watch
+//+kubebuilder:rbac:groups=,resources=persistentvolumes,verbs=get,list,watch
+//+kubebuilder:rbac:groups=storage.k8s.io/,resources=volumeattachments,verbs=get,list,watch
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
@@ -94,7 +93,7 @@ func (r *ReclaimSpaceJobReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, uErr
 	}
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{}, err
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -156,8 +155,8 @@ func (r *ReclaimSpaceJobReconciler) reconcile(
 
 	conns, unlock := r.ConnPool.Get()
 	var (
-		controllerClient *grpc.ClientConn = nil
-		nodeClient       *grpc.ClientConn = nil
+		controllerClient *grpc.ClientConn
+		nodeClient       *grpc.ClientConn
 	)
 	logger.Info("", "o", *conns)
 	for k, v := range *conns {
@@ -166,10 +165,9 @@ func (r *ReclaimSpaceJobReconciler) reconcile(
 				if cap.GetReclaimSpace() == nil {
 					continue
 				}
-				client := *v.Client
 				logger.Info(cap.String() + " node:" + v.NodeID)
 				if cap.GetReclaimSpace().GetType() == identity.Capability_ReclaimSpace_OFFLINE {
-					controllerClient = &client
+					controllerClient = v.Client
 					logger.Info(k + " is a controller")
 					logger.Info("making controller req")
 					res, err := proto.NewReclaimSpaceClient(controllerClient).ControllerReclaimSpace(ctx, &proto.ReclaimSpaceRequest{
@@ -181,7 +179,7 @@ func (r *ReclaimSpaceJobReconciler) reconcile(
 					logger.Info("res", "res", res)
 
 				} else if (v.NodeID == nodeID) && (cap.GetReclaimSpace().GetType() == identity.Capability_ReclaimSpace_ONLINE) {
-					nodeClient = &client
+					nodeClient = v.Client
 					logger.Info(k + " is a node")
 					logger.Info("making node req")
 					res, err := proto.NewReclaimSpaceClient(nodeClient).NodeReclaimSpace(ctx, &proto.ReclaimSpaceRequest{
@@ -196,7 +194,7 @@ func (r *ReclaimSpaceJobReconciler) reconcile(
 		}
 	}
 	unlock()
-
+	status.Result = csiaddonsv1alpha1.OperationResultSucceeded
 	// logger.Info("res", "res", res)
 	// send csi driver rpc
 	return nil
