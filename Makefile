@@ -47,8 +47,8 @@ help: ## Display this help.
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./cmd/... ./controllers/... ./sidecar/..." output:crd:artifacts:config=config/crd/bases
-
+	
+	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="{./api/...,./cmd/...,./controllers/...,./sidecar/...}" output:crd:artifacts:config=config/crd/bases
 .PHONY: bundle
 bundle: kustomize operator-sdk
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
