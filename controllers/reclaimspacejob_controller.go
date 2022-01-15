@@ -53,9 +53,9 @@ type ReclaimSpaceJobReconciler struct {
 //+kubebuilder:rbac:groups=csiaddons.openshift.io,resources=reclaimspacejobs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=csiaddons.openshift.io,resources=reclaimspacejobs/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=csiaddons.openshift.io,resources=reclaimspacejobs/finalizers,verbs=update
-//+kubebuilder:rbac:groups="",resources=persistentvolumeclaims,verbs=get,list,watch
-//+kubebuilder:rbac:groups="",resources=persistentvolumes,verbs=get,list,watch
-//+kubebuilder:rbac:groups=storage.k8s.io,resources=volumeattachments,verbs=get,list,watch
+//+kubebuilder:rbac:groups="",resources=persistentvolumeclaims,verbs=get;list;watch
+//+kubebuilder:rbac:groups="",resources=persistentvolumes,verbs=get;list;watch
+//+kubebuilder:rbac:groups=storage.k8s.io,resources=volumeattachments,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
