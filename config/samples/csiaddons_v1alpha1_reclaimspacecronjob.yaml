@@ -8,4 +8,4 @@ spec:
   jobTemplate:
     spec:
       target:
-        persistentVolumeClaim: data-pvc
+        persistentVolumeClaim: rbd-pvc

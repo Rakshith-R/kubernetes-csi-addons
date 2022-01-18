@@ -12,6 +12,8 @@ rules:
   verbs:
   - get
   - list
+  - patch
+  - update
   - watch
 - apiGroups:
   - ""
@@ -69,6 +71,32 @@ rules:
   - csiaddons.openshift.io
   resources:
   - networkfences/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - csiaddons.openshift.io
+  resources:
+  - reclaimspacecronjobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - csiaddons.openshift.io
+  resources:
+  - reclaimspacecronjobs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - csiaddons.openshift.io
+  resources:
+  - reclaimspacecronjobs/status
   verbs:
   - get
   - patch

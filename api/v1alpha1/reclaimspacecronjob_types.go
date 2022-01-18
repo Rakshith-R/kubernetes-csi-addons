@@ -17,7 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -39,6 +39,11 @@ type ReclaimSpaceCronJobSpec struct {
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Pattern:=.+
 	Schedule string `json:"schedule"`
+
+	// Optional deadline in seconds for starting the job if it misses scheduled
+	// time for any reason.  Missed jobs executions will be counted as failed ones.
+	// +kubebuilder:validation:Optional
+	StartingDeadlineSeconds *int64 `json:"startingDeadlineSeconds,omitempty"`
 
 	// Specifies how to treat concurrent executions of a Job.
 	// Valid values are:
