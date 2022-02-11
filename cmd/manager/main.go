@@ -88,15 +88,17 @@ func main() {
 
 	connPool := connection.NewConnectionPool()
 
-	if err = (&controllers.CSIAddonsNodeReconciler{
+	csiAddonsNodeReconciler := &controllers.CSIAddonsNodeReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		ConnPool: connPool,
-	}).SetupWithManager(mgr); err != nil {
+	}
+	defer csiAddonsNodeReconciler.CleanupCSIAddonsNodeFinalizer()
+
+	if err = csiAddonsNodeReconciler.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "CSIAddonsNode")
 		os.Exit(1)
 	}
-
 	if err = (&controllers.ReclaimSpaceJobReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),

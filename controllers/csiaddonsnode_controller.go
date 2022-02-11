@@ -195,3 +195,22 @@ func validateCSIAddonsNodeSpec(csiaddonsnode *csiaddonsv1alpha1.CSIAddonsNode) e
 
 	return nil
 }
+
+func (r *CSIAddonsNodeReconciler) CleanupCSIAddonsNodeFinalizer() {
+	logger := ctrl.Log.WithName("CSIAddonsNode Finalizer Cleanup Handler")
+	csiAddonsNodeList := &csiaddonsv1alpha1.CSIAddonsNodeList{}
+	err := r.Client.List(context.TODO(), csiAddonsNodeList)
+	if err != nil {
+		logger.Error(err, "Failed to list CSIAddonsNode CR")
+		return
+	}
+	for _, csiAddonsNode := range csiAddonsNodeList.Items {
+		nLogger := logger.WithValues("Name", csiAddonsNode.Name, "Namespace", csiAddonsNode.Namespace)
+		err = r.removeFinalizer(context.TODO(), &nLogger, &csiAddonsNode)
+		if err != nil {
+			nLogger.Error(err, "Failed to remove finalizer")
+		} else {
+			nLogger.Info("Successfully removed finalizer")
+		}
+	}
+}
