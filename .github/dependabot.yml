@@ -53,6 +53,8 @@ updates:
         exclude-patterns:
           - "github.com/golang*"
   - package-ecosystem: "github-actions"
+    # ODF only: disable PR creation, synced from upstream
+    open-pull-requests-limit: 0
     directory: "/"
     schedule:
       interval: "weekly"
