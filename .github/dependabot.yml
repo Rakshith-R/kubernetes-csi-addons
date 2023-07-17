@@ -29,6 +29,8 @@ updates:
           - "github.com/golang*"
           - "github.com/container-storage-interface/spec"
   - package-ecosystem: "gomod"
+    # ODF only: disable PR creation, synced from upstream
+    open-pull-requests-limit: 0
     directory: "/tools"
     schedule:
       interval: "weekly"
